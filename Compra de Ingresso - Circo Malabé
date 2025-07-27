@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Compra de Ingresso - Circo Malabé</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+    body {
+      background: repeating-linear-gradient(45deg, #111 0, #111 10px, #1a1a1a 10px, #1a1a1a 20px);
+      color: #ffe;
+      font-family: 'Courier New', monospace;
+      padding: 20px;
+      max-width: 450px;
+      margin: auto;
+      border: 4px double gold;
+      border-radius: 20px;
+      box-shadow: 0 0 20px red;
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', cursive;
+      text-align: center;
+      color: gold;
+      font-size: 2.5rem;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px #8B0000;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 4px;
+      background: #222;
+      border: 2px solid #555;
+      color: #ffe;
+      font-family: monospace;
+      font-size: 1rem;
+      border-radius: 6px;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(to right, #ff0000, #cc0000);
+      border: 2px solid gold;
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 10px;
+      text-shadow: 1px 1px #000;
+      box-shadow: 0 0 10px gold;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #cc0000, #990000);
+    }
+
+    .btn-excluir {
+      background: #333;
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      width: auto;
+      margin-top: 10px;
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+    }
+
+    .btn-excluir:hover {
+      background: #ff0000;
+    }
+
+    #ingresso {
+      margin-top: 30px;
+      background: #000;
+      padding: 15px;
+      white-space: pre;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      line-height: 1.4;
+      border: 2px dashed gold;
+      user-select: all;
+      color: #f00;
+      position: relative;
+    }
+
+    #btnCopiar {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      background: #8B0000;
+      color: #fff;
+      font-weight: bold;
+      border: 2px solid #ff0000;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 8px #ff0000;
+      display: none;
+    }
+
+    #btnCopiar:hover {
+      background: #A52A2A;
+    }
+
+    .qr-code-container {
+      text-align: center;
+      margin: 15px 0;
+    }
+
+    .qr-code {
+      background: white;
+      padding: 10px;
+      display: inline-block;
+      border-radius: 4px;
+    }
+
+    #listaIngressos {
+      margin-top: 30px;
+      border-top: 2px solid #444;
+      padding-top: 20px;
+    }
+
+    .ingresso-item {
+      background: #222;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border-left: 4px solid red;
+      position: relative;
+      min-height: 100px;
+    }
+
+    .ingresso-item h3 {
+      margin-top: 0;
+      color: gold;
+      margin-right: 60px;
+    }
+
+    .ingresso-info {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-right: 60px;
+    }
+
+    .qr-small {
+      width: 50px;
+      height: 50px;
+      position: absolute;
+      right: 10px;
+      top: 15px;
+      background: white;
+      padding: 3px;
+      border-radius: 3px;
+    }
+
+    .clear {
+      clear: both;
+    }
+
+    /* Estilos para a página de validação */
+    .validacao-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+    }
+
+    .validacao-content {
+      background: #111;
+      padding: 30px;
+      border: 4px solid gold;
+      border-radius: 20px;
+      max-width: 90%;
+      width: 400px;
+      position: relative;
+    }
+
+    .checkmark {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      display: block;
+      stroke-width: 5;
+      stroke: #4CAF50;
+      stroke-miterlimit: 10;
+      margin: 20px auto;
+      box-shadow: inset 0px 0px 0px #4CAF50;
+      animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
+    }
+
+    .checkmark__circle {
+      stroke-dasharray: 166;
+      stroke-dashoffset: 166;
+      stroke-width: 5;
+      stroke-miterlimit: 10;
+      stroke: #4CAF50;
+      fill: none;
+      animation: stroke .6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+
+    .checkmark__check {
+      transform-origin: 50% 50%;
+      stroke-dasharray: 48;
+      stroke-dashoffset: 48;
+      animation: stroke .3s cubic-bezier(0.65, 0, 0.45, 1) .8s forwards;
+    }
+
+    @keyframes stroke {
+      100% {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes scale {
+      0%, 100% {
+        transform: none;
+      }
+      50% {
+        transform: scale3d(1.1, 1.1, 1);
+      }
+    }
+
+    @keyframes fill {
+      100% {
+        box-shadow: inset 0px 0px 0px 50px rgba(76, 175, 80, 0);
+      }
+    }
+
+    .btn-fechar-validacao {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #ff0000;
+      border: none;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .ingresso-validado {
+      background: #000;
+      padding: 15px;
+      margin-top: 20px;
+      border: 2px dashed #4CAF50;
+      color: #4CAF50;
+      font-family: monospace;
+      white-space: pre;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Circo Malabé - Compra de Ingresso</h1>
+
+<form id="formIngresso">
+  <label for="nome">Nome Completo</label>
+  <input id="nome" type="text" required autocomplete="off" placeholder="Seu nome completo" />
+
+  <label for="cpf">CPF (somente números)</label>
+  <input id="cpf" type="text" maxlength="11" pattern="\d{11}" required autocomplete="off" placeholder="Ex: 12345678901" />
+
+  <label for="email">Email</label>
+  <input id="email" type="email" required placeholder="email@exemplo.com" />
+
+  <label for="tipoIngresso">Tipo de Ingresso</label>
+  <select id="tipoIngresso" required>
+    <option value="" disabled selected>Selecione o tipo</option>
+    <option value="Meia">Meia Entrada - R$ 15,00</option>
+    <option value="Inteira">Inteira - R$ 30,00</option>
+    <option value="VIP">VIP - R$ 60,00</option>
+  </select>
+
+  <button type="submit">Gerar Ingresso</button>
+</form>
+
+<pre id="ingresso" style="display:none;"></pre>
+<button id="btnCopiar">📋 Copiar Ingresso</button>
+
+<div id="listaIngressos">
+  <h2>Ingressos Gerados</h2>
+  <div id="ingressosContainer"></div>
+</div>
+
+<!-- Página de validação que aparece quando o QR code é escaneado -->
+<div id="validacaoContainer" class="validacao-container">
+  <div class="validacao-content">
+    <button id="btnFecharValidacao" class="btn-fechar-validacao">X</button>
+    <h2>Ingresso Validado!</h2>
+    
+    <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+      <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+      <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+    </svg>
+    
+    <p>Este ingresso foi validado com sucesso!</p>
+    <div id="detalhesIngressoValidado" class="ingresso-validado"></div>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('formIngresso');
+  const ingressoArea = document.getElementById('ingresso');
+  const btnCopiar = document.getElementById('btnCopiar');
+  const ingressosContainer = document.getElementById('ingressosContainer');
+  const validacaoContainer = document.getElementById('validacaoContainer');
+  const btnFecharValidacao = document.getElementById('btnFecharValidacao');
+  const detalhesIngressoValidado = document.getElementById('detalhesIngressoValidado');
+
+  let ingressosGerados = JSON.parse(localStorage.getItem('ingressosCircoMalabe')) || [];
+
+  const precos = {
+    Meia: 15.00,
+    Inteira: 30.00,
+    VIP: 60.00
+  };
+
+  // Verificar se é uma validação pelo URL
+  function verificarValidacaoPelaURL() {
+    const params = new URLSearchParams(window.location.search);
+    const idIngresso = params.get('id');
+    
+    if (idIngresso) {
+      const ingresso = ingressosGerados.find(i => i.id == idIngresso);
+      if (ingresso) {
+        mostrarPaginaValidacao(ingresso);
+        // Limpar o parâmetro da URL sem recarregar a página
+        history.replaceState(null, '', window.location.pathname);
+      }
+    }
+  }
+
+  function mostrarPaginaValidacao(ingresso) {
+    const largura = 32;
+    const centerText = t => {
+      const espacos = Math.max(0, largura - t.length);
+      const left = Math.floor(espacos / 2);
+      const right = espacos - left;
+      return ' '.repeat(left) + t + ' '.repeat(right);
+    };
+    const lineSep = (char = '-') => char.repeat(largura);
+
+    let textoIngresso = '';
+    textoIngresso += lineSep('=') + '\n';
+    textoIngresso += centerText('CIRCO MALABÉ') + '\n';
+    textoIngresso += centerText('INGRESSO VALIDADO') + '\n';
+    textoIngresso += lineSep('=') + '\n\n';
+    textoIngresso += `Nome: ${ingresso.nome}\n`;
+    textoIngresso += `CPF:  ${ingresso.cpfFormatted}\n`;
+    textoIngresso += `Tipo: ${ingresso.tipo}\n`;
+    textoIngresso += `Valor: R$ ${ingresso.preco}\n\n`;
+    textoIngresso += lineSep() + '\n';
+    textoIngresso += `Data: ${ingresso.data}  Hora: ${ingresso.hora}\n\n`;
+    textoIngresso += centerText('*** DIVIRTA-SE! ***') + '\n';
+    textoIngresso += lineSep('=') + '\n';
+
+    detalhesIngressoValidado.textContent = textoIngresso;
+    validacaoContainer.style.display = 'flex';
+  }
+
+  btnFecharValidacao.addEventListener('click', () => {
+    validacaoContainer.style.display = 'none';
+  });
+
+  function generateQRCode(text, elementId, size = 150) {
+    const qr = qrcode(0, 'L');
+    qr.addData(text);
+    qr.make();
+    const imgTag = document.createElement('img');
+    imgTag.src = qr.createDataURL(4, size / 10);
+    imgTag.alt = "QR Code do Ingresso";
+    imgTag.id = elementId;
+    imgTag.width = size;
+    imgTag.height = size;
+    imgTag.style.display = 'block';
+    imgTag.style.margin = '0 auto';
+    return imgTag;
+  }
+
+  function exibirIngressosSalvos() {
+    ingressosContainer.innerHTML = '';
+    if (ingressosGerados.length === 0) {
+      ingressosContainer.innerHTML = '<p>Nenhum ingresso gerado ainda.</p>';
+      return;
+    }
+
+    ingressosGerados.slice().reverse().forEach((ingresso, index) => {
+      const originalIndex = ingressosGerados.length - 1 - index;
+      const div = document.createElement('div');
+      div.className = 'ingresso-item';
+      const qrId = `qr-small-${originalIndex}`;
+      div.innerHTML = `
+        <h3>${ingresso.nome}</h3>
+        <div class="ingresso-info">
+          <strong>Tipo:</strong> ${ingresso.tipo} (R$ ${ingresso.preco})<br>
+          <strong>Data:</strong> ${ingresso.data} ${ingresso.hora}<br>
+          <strong>CPF:</strong> ${ingresso.cpfFormatted}
+        </div>
+      `;
+      const qrImg = generateQRCode(ingresso.qrData, qrId, 50);
+      qrImg.className = 'qr-small';
+      div.appendChild(qrImg);
+
+      const btnExcluir = document.createElement('button');
+      btnExcluir.className = 'btn-excluir';
+      btnExcluir.textContent = 'Excluir';
+      btnExcluir.onclick = () => excluirIngresso(originalIndex);
+      div.appendChild(btnExcluir);
+
+      div.appendChild(document.createElement('div')).className = 'clear';
+      ingressosContainer.appendChild(div);
+    });
+  }
+
+  function excluirIngresso(index) {
+    if (confirm('Tem certeza que deseja excluir este ingresso?')) {
+      ingressosGerados.splice(index, 1);
+      localStorage.setItem('ingressosCircoMalabe', JSON.stringify(ingressosGerados));
+      exibirIngressosSalvos();
+    }
+  }
+
+  // Inicialização
+  exibirIngressosSalvos();
+  verificarValidacaoPelaURL();
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const nome = document.getElementById('nome').value.trim();
+    const cpf = document.getElementById('cpf').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const tipo = document.getElementById('tipoIngresso').value;
+
+    if (!nome || !cpf || !email || !tipo) {
+      alert('Preencha todos os campos corretamente!');
+      return;
+    }
+
+    if (!/^\d{11}$/.test(cpf)) {
+      alert('CPF inválido! Deve conter exatamente 11 números.');
+      return;
+    }
+
+    const preco = precos[tipo].toFixed(2);
+    const dataCompra = new Date();
+    const dataFormatada = dataCompra.toLocaleDateString('pt-BR');
+    const horaFormatada = dataCompra.toLocaleTimeString('pt-BR');
+    const cpfFormatado = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    const idUnico = Date.now(); // identificador do ingresso
+    const qrData = `${window.location.origin}${window.location.pathname}?id=${idUnico}`;
+
+    const largura = 32;
+    const centerText = t => {
+      const espacos = Math.max(0, largura - t.length);
+      const left = Math.floor(espacos / 2);
+      const right = espacos - left;
+      return ' '.repeat(left) + t + ' '.repeat(right);
+    };
+    const lineSep = (char = '-') => char.repeat(largura);
+
+    let textoIngresso = '';
+    textoIngresso += lineSep('=') + '\n';
+    textoIngresso += centerText('CIRCO MALABÉ') + '\n';
+    textoIngresso += centerText('INGRESSO OFICIAL') + '\n';
+    textoIngresso += lineSep('=') + '\n\n';
+    textoIngresso += `Nome: ${nome}\n`;
+    textoIngresso += `CPF:  ${cpfFormatado}\n`;
+    textoIngresso += `Email: ${email}\n`;
+    textoIngresso += `Tipo: ${tipo}\n`;
+    textoIngresso += `Valor: R$ ${preco}\n\n`;
+    textoIngresso += lineSep() + '\n';
+    textoIngresso += `Data: ${dataFormatada}  Hora: ${horaFormatada}\n\n`;
+    textoIngresso += centerText('QR CODE PARA VALIDAÇÃO') + '\n';
+
+    ingressoArea.textContent = textoIngresso;
+    ingressoArea.style.display = 'block';
+    btnCopiar.style.display = 'block';
+
+    const qrContainer = document.createElement('div');
+    qrContainer.className = 'qr-code-container';
+    const qrCodeDiv = document.createElement('div');
+    qrCodeDiv.className = 'qr-code';
+    const qrImg = generateQRCode(qrData, 'qrCodeIngresso', 120);
+    qrCodeDiv.appendChild(qrImg);
+    qrContainer.appendChild(qrCodeDiv);
+
+    ingressoArea.appendChild(document.createElement('div')).className = 'clear';
+    ingressoArea.appendChild(qrContainer);
+
+    const rodape = document.createElement('pre');
+    rodape.textContent = centerText('*** Divirta-se! ***') + '\n' + lineSep('=') + '\n';
+    ingressoArea.appendChild(rodape);
+
+    const novoIngresso = {
+      id: idUnico,
+      nome, cpf, cpfFormatted: cpfFormatado, email,
+      tipo, preco, data: dataFormatada, hora: horaFormatada,
+      qrData, timestamp: dataCompra.getTime()
+    };
+
+    ingressosGerados.push(novoIngresso);
+    localStorage.setItem('ingressosCircoMalabe', JSON.stringify(ingressosGerados));
+    exibirIngressosSalvos();
+    ingressoArea.scrollIntoView({ behavior: "smooth" });
+  });
+
+  btnCopiar.onclick = () => {
+    const range = document.createRange();
+    range.selectNode(ingressoArea);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    try {
+      document.execCommand('copy');
+      alert('🎉 Ingresso copiado com sucesso!');
+    } catch (err) {
+      alert('Erro ao copiar o ingresso!');
+    }
+    window.getSelection().removeAllRanges();
+  };
+</script>
+
+</body>
+</html>
