@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Validação de Ingresso</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      text-align: center;
+      padding: 40px;
+    }
+    .validado {
+      background: #060;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .erro {
+      background: #800;
+      padding: 20px;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎪 Validação de Ingresso</h1>
+  <div id="resultado">Verificando...</div>
+
+  <script>
+    const id = new URLSearchParams(window.location.search).get('id');
+    const container = document.getElementById('resultado');
+    const ingressos = JSON.parse(localStorage.getItem('ingressosCircoMalabe')) || [];
+    const ingresso = ingressos.find(i => i.id == id);
+
+    if (ingresso) {
+      container.innerHTML = `
+        <div class="validado">
+          <h2>✅ Ingresso Válido</h2>
+          <p><strong>Nome:</strong> ${ingresso.nome}</p>
+          <p><strong>CPF:</strong> ${ingresso.cpfFormatted}</p>
+          <p><strong>Tipo:</strong> ${ingresso.tipo}</p>
+          <p><strong>Data:</strong> ${ingresso.data} ${ingresso.hora}</p>
+        </div>
+      `;
+    } else {
+      container.innerHTML = '<div class="erro"><h2>❌ Ingresso não encontrado ou inválido.</h2></div>';
+    }
+  </script>
+</body>
+</html>
