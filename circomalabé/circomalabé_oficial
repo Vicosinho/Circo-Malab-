@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Compra de Ingresso - Circo Malabé</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #111;
+      color: #eee;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      font-family: 'Georgia', serif;
+      font-size: 32px;
+      color: #ffcc00;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form {
+      max-width: 500px;
+      margin: 0 auto 40px auto;
+      background: #222;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #000;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      background: #333;
+      color: #fff;
+    }
+
+    button {
+      padding: 12px 20px;
+      background-color: #c00;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .ingresso {
+      background-color: #300;
+      border-left: 5px solid #900;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+    }
+
+    .ingresso h3 {
+      margin: 0 0 10px;
+      color: #ff6666;
+    }
+
+    .qr {
+      margin-top: 10px;
+    }
+
+    .excluir {
+      margin-top: 10px;
+      background-color: #444;
+      border: none;
+      padding: 6px 12px;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Compra de Ingresso - Circo Malabé</h1>
+  <form id="formIngresso">
+    <label>Nome:</label>
+    <input type="text" id="nome" required>
+    <label>CPF:</label>
+    <input type="text" id="cpf" required>
+    <label>Email:</label>
+    <input type="email" id="email" required>
+    <label>Tipo de Ingresso:</label>
+    <select id="tipo" required>
+      <option value="">Selecione</option>
+      <option value="Inteira">Inteira</option>
+      <option value="Meia">Meia</option>
+      <option value="VIP">VIP</option>
+    </select>
+    <button type="submit">Gerar Ingresso</button>
+  </form>
+
+  <div id="ingressos"></div>
+
+  <script>
+    const form = document.getElementById('formIngresso');
+    const divIngressos = document.getElementById('ingressos');
+    const ingressosSalvos = JSON.parse(localStorage.getItem('ingressosCircoMalabe')) || [];
+
+    const renderIngressos = () => {
+      divIngressos.innerHTML = '';
+      ingressosSalvos.forEach((ingresso, index) => {
+        const div = document.createElement('div');
+        div.className = 'ingresso';
+        div.innerHTML = `
+          <h3>🎟️ Ingresso ${index + 1}</h3>
+          <p><strong>Nome:</strong> ${ingresso.nome}</p>
+          <p><strong>CPF:</strong> ${ingresso.cpfFormatted}</p>
+          <p><strong>Email:</strong> ${ingresso.email}</p>
+          <p><strong>Tipo:</strong> ${ingresso.tipo}</p>
+          <p><strong>Data:</strong> ${ingresso.data} ${ingresso.hora}</p>
+          <div class="qr" id="qrcode-${index}"></div>
+          <button class="excluir" onclick="excluirIngresso(${index})">Excluir</button>
+        `;
+        divIngressos.appendChild(div);
+
+        // QR Code
+        const qr = qrcode(0, 'M');
+        qr.addData(ingresso.qrData);
+        qr.make();
+        document.getElementById(`qrcode-${index}`).innerHTML = qr.createImgTag(4);
+      });
+    };
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nome = document.getElementById('nome').value.trim();
+      const cpf = document.getElementById('cpf').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const tipo = document.getElementById('tipo').value;
+
+      const cpfFormatado = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+      const dataCompra = new Date();
+      const dataFormatada = dataCompra.toLocaleDateString();
+      const horaFormatada = dataCompra.toLocaleTimeString();
+
+      const idUnico = Date.now();
+      const qrData = `https://circomalabe.com/validar.html?id=${idUnico}`;
+
+      const novoIngresso = {
+        id: idUnico,
+        nome, cpf, cpfFormatted: cpfFormatado, email,
+        tipo, data: dataFormatada, hora: horaFormatada,
+        qrData
+      };
+
+      ingressosSalvos.push(novoIngresso);
+      localStorage.setItem('ingressosCircoMalabe', JSON.stringify(ingressosSalvos));
+      renderIngressos();
+      form.reset();
+    });
+
+    const excluirIngresso = (index) => {
+      if (confirm('Tem certeza que deseja excluir este ingresso?')) {
+        ingressosSalvos.splice(index, 1);
+        localStorage.setItem('ingressosCircoMalabe', JSON.stringify(ingressosSalvos));
+        renderIngressos();
+      }
+    };
+
+    renderIngressos();
+  </script>
+</body>
+</html>
