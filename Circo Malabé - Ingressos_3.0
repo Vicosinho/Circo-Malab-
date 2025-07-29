@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Circo Malabé - Ingressos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: repeating-linear-gradient(45deg, #111 0, #111 10px, #1a1a1a 10px, #1a1a1a 20px);
+      color: #ffe;
+      font-family: 'Courier New', monospace;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 30px;
+      border: 5px double gold;
+      border-radius: 25px;
+      box-shadow: 0 0 25px red;
+      background: rgba(0, 0, 0, 0.9);
+    }
+
+    h1 {
+      font-family: 'Bebas Neue', cursive;
+      text-align: center;
+      color: gold;
+      font-size: 3rem;
+      letter-spacing: 3px;
+      text-shadow: 2px 2px #8B0000;
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      background: #222;
+      border: 2px solid #555;
+      color: #ffe;
+      font-family: monospace;
+      font-size: 1rem;
+      border-radius: 6px;
+    }
+
+    button {
+      margin-top: 25px;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(to right, #ff0000, #cc0000);
+      border: 2px solid gold;
+      color: white;
+      font-size: 1.3rem;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 10px;
+      text-shadow: 1px 1px #000;
+      box-shadow: 0 0 12px gold;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #cc0000, #990000);
+    }
+
+    #ingressosList {
+      margin-top: 40px;
+    }
+
+    .ingresso {
+      background: #222;
+      border-left: 5px solid red;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      color: #ffe;
+      position: relative;
+    }
+
+    .ingresso strong {
+      color: gold;
+    }
+
+    .sem-ingresso {
+      text-align: center;
+      font-style: italic;
+      margin-top: 20px;
+      color: #ccc;
+    }
+
+    .btn-excluir {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: auto;
+      padding: 5px 10px;
+      background: #8B0000;
+      font-size: 0.8rem;
+      margin-top: 0;
+      box-shadow: none;
+    }
+
+    .btn-excluir:hover {
+      background: #600000;
+    }
+
+    .qr-code {
+      margin-top: 15px;
+      text-align: center;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    .qr-code img {
+      max-width: 200px;
+      margin: 0 auto;
+      display: block;
+    }
+
+    .qr-code p {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: gold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Compra de Ingressos - Circo Malabé</h1>
+
+    <form id="formIngresso">
+      <label for="nome">Nome Completo</label>
+      <input id="nome" type="text" required autocomplete="off" />
+
+      <label for="cpf">CPF (somente números)</label>
+      <input id="cpf" type="text" maxlength="11" pattern="\d{11}" required />
+
+      <label for="email">Email</label>
+      <input id="email" type="email" required />
+
+      <label for="tipo">Tipo de Ingresso</label>
+      <select id="tipo" required>
+        <option value="" disabled selected>Escolha...</option>
+        <option value="Inteira">Normal - R$ 00,00 </option>
+        <option value="VIP">VIP - R$ 5,00</option>
+      </select>
+
+      <button type="submit">Gerar Ingresso</button>
+    </form>
+
+    <div id="ingressosList">
+      <h2>Ingressos Gerados</h2>
+      <div id="lista"></div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('formIngresso');
+    const lista = document.getElementById('lista');
+    let ingressos = JSON.parse(localStorage.getItem('ingressosMalabe')) || [];
+    const precos = {
+      Inteira: 00.00,
+      VIP: 5.00
+    };
+
+    function renderIngressos() {
+      lista.innerHTML = '';
+      if (ingressos.length === 0) {
+        lista.innerHTML = '<p class="sem-ingresso">Nenhum ingresso gerado ainda.</p>';
+        return;
+      }
+      ingressos.slice().reverse().forEach((ingresso, index) => {
+        const div = document.createElement('div');
+        div.className = 'ingresso';
+        div.innerHTML = `
+          <button class="btn-excluir" data-index="${ingressos.length - 1 - index}">X</button>
+          <p><strong>Nome:</strong> ${ingresso.nome}</p>
+          <p><strong>CPF:</strong> ${ingresso.cpf}</p>
+          <p><strong>Email:</strong> ${ingresso.email}</p>
+          <p><strong>Tipo:</strong> ${ingresso.tipo} - R$ ${ingresso.preco}</p>
+          <p><strong>Data:</strong> ${ingresso.data} ${ingresso.hora}</p>
+          <div class="qr-code">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent('CIRCO MALABÉ\n*válidado com sucesso*')}" alt="QR Code Ingresso">
+            <p>QR Code do ingresso</p>
+          </div>
+        `;
+        lista.appendChild(div);
+      });
+      // Adiciona eventos aos botões de excluir
+      document.querySelectorAll('.btn-excluir').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = parseInt(e.target.getAttribute('data-index'));
+          ingressos.splice(index, 1);
+          localStorage.setItem('ingressosMalabe', JSON.stringify(ingressos));
+          renderIngressos();
+        });
+      });
+    }
+    renderIngressos();
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const nome = document.getElementById('nome').value.trim();
+      const cpf = document.getElementById('cpf').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const tipo = document.getElementById('tipo').value;
+      if (!/^\d{11}$/.test(cpf)) {
+        alert('CPF inválido! Deve conter exatamente 11 números.');
+        return;
+      }
+      const data = new Date();
+      const dataFormatada = data.toLocaleDateString('pt-BR');
+      const horaFormatada = data.toLocaleTimeString('pt-BR');
+      const preco = precos[tipo].toFixed(2);
+      const cpfFormatado = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+      const ingresso = {
+        nome,
+        cpf: cpfFormatado,
+        email,
+        tipo,
+        preco,
+        data: dataFormatada,
+        hora: horaFormatada
+      };
+      ingressos.push(ingresso);
+      localStorage.setItem('ingressosMalabe', JSON.stringify(ingressos));
+      renderIngressos();
+      form.reset();
+    });
+  </script>
+</body>
+
+</html>
